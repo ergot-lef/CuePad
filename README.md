@@ -31,7 +31,7 @@ Requires Python 3.10 or newer.
 
 ```bash
 python -m pip install -r requirements.txt   # server, yt-dlp and ffmpeg
-python -m pip install demucs                # stems (pulls in PyTorch, large download)
+python -m pip install demucs numpy          # stems (pulls in PyTorch, large download)
 ```
 
 No separate ffmpeg install needed: if it isn't already on your machine, the server uses the one shipped with the `imageio-ffmpeg` package.

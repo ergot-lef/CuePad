@@ -39,7 +39,8 @@ DEMUCS_MODEL = os.environ.get("CUEPAD_MODEL", "htdemucs")
 DEMUCS_DEVICE = os.environ.get("CUEPAD_DEVICE")  # "cuda", "cpu"… (auto par défaut)
 
 FAKE_STEMS = os.environ.get("CUEPAD_FAKE_STEMS") == "1"  # réservé aux tests
-HAS_DEMUCS = FAKE_STEMS or find_spec("demucs") is not None
+DEMUCS_MISSING = [m for m in ("demucs", "torch", "numpy") if find_spec(m) is None]
+HAS_DEMUCS = FAKE_STEMS or not DEMUCS_MISSING
 HAS_YTDLP = find_spec("yt_dlp") is not None
 
 
@@ -153,11 +154,9 @@ def _separate(jid: str, src: Path) -> dict:
         return {"stems": {s: f"/files/stems/{sha}/{s}.wav" for s in STEMS}}
     tmp = STEM_DIR / f"_tmp_{sha}"
     shutil.rmtree(tmp, ignore_errors=True)
-    cmd = [sys.executable, "-m", "demucs", "-n", DEMUCS_MODEL, "-o", str(tmp), "--filename", "{stem}.{ext}"]
-    if DEMUCS_DEVICE:
-        cmd += ["-d", DEMUCS_DEVICE]
-    cmd.append(str(src))
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    cmd = [sys.executable, str(ROOT / "stems_worker.py"), str(src), str(tmp), DEMUCS_MODEL, DEMUCS_DEVICE or ""]
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1"}
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
     tail: list[str] = []
     buf = b""
     assert proc.stdout is not None
@@ -177,7 +176,7 @@ def _separate(jid: str, src: Path) -> dict:
                 tail = (tail + [txt])[-15:]
     if proc.wait() != 0:
         raise RuntimeError("Demucs a échoué : " + " | ".join(tail[-4:]))
-    produced = tmp / DEMUCS_MODEL
+    produced = tmp
     out.mkdir(parents=True, exist_ok=True)
     for s in STEMS:
         f = produced / f"{s}.wav"
@@ -282,7 +281,7 @@ if __name__ == "__main__":
     if not HAS_FFMPEG:
         missing.append(f"ffmpeg  → {sys.executable} -m pip install imageio-ffmpeg")
     if not HAS_DEMUCS:
-        missing.append(f"Demucs  → {sys.executable} -m pip install demucs")
+        missing.append(f"Demucs  → {sys.executable} -m pip install " + " ".join(DEMUCS_MISSING))
     if not HAS_YTDLP:
         missing.append(f"yt-dlp  → {sys.executable} -m pip install yt-dlp")
     if missing:
