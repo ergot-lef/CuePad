@@ -248,7 +248,22 @@ if __name__ == "__main__":
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8765)
     a = ap.parse_args()
-    print(f"CuePad → http://{a.host}:{a.port}")
-    print(f"  stems (Demucs) : {'oui' if HAS_DEMUCS and HAS_FFMPEG else 'non'}"
-          f"   YouTube (yt-dlp) : {'oui' if HAS_YTDLP and HAS_FFMPEG else 'non'}")
+    ok = lambda b: "oui" if b else "NON"  # noqa: E731
+    print(f"CuePad → http://{a.host}:{a.port}\n")
+    print(f"  ffmpeg  : {ok(HAS_FFMPEG):3}  (nécessaire pour les stems et YouTube)")
+    print(f"  Demucs  : {ok(HAS_DEMUCS):3}  (stems)")
+    print(f"  yt-dlp  : {ok(HAS_YTDLP):3}  (liens YouTube)")
+    missing = []
+    if not HAS_FFMPEG:
+        missing.append("ffmpeg  → Windows : winget install Gyan.FFmpeg  |  Linux : sudo pacman -S ffmpeg"
+                       "  (puis rouvre le terminal)")
+    if not HAS_DEMUCS:
+        missing.append(f"Demucs  → {sys.executable} -m pip install demucs")
+    if not HAS_YTDLP:
+        missing.append(f"yt-dlp  → {sys.executable} -m pip install yt-dlp")
+    if missing:
+        print("\n  Pour tout activer :")
+        for m in missing:
+            print("    " + m)
+    print("\n  Sans ces outils, l'analyse et les pads marchent quand même avec tes fichiers.\n")
     uvicorn.run(app, host=a.host, port=a.port, log_level="warning")
