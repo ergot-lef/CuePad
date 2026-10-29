@@ -41,7 +41,32 @@ DEMUCS_DEVICE = os.environ.get("CUEPAD_DEVICE")  # "cuda", "cpu"… (auto par d�
 FAKE_STEMS = os.environ.get("CUEPAD_FAKE_STEMS") == "1"  # réservé aux tests
 HAS_DEMUCS = FAKE_STEMS or find_spec("demucs") is not None
 HAS_YTDLP = find_spec("yt_dlp") is not None
-HAS_FFMPEG = shutil.which("ffmpeg") is not None
+
+
+def _ensure_ffmpeg() -> bool:
+    """Trouve ffmpeg ; à défaut, utilise celui fourni par le paquet pip imageio-ffmpeg.
+
+    Le binaire est copié dans cache/bin sous le nom « ffmpeg » et ce dossier est ajouté
+    au PATH du serveur : Demucs et yt-dlp le trouvent alors sans rien installer à la main.
+    """
+    if shutil.which("ffmpeg"):
+        return True
+    try:
+        import imageio_ffmpeg  # dépendance optionnelle (requirements.txt)
+        exe = Path(imageio_ffmpeg.get_ffmpeg_exe())
+    except Exception:  # noqa: BLE001
+        return False
+    bindir = CACHE / "bin"
+    bindir.mkdir(parents=True, exist_ok=True)
+    dest = bindir / ("ffmpeg.exe" if os.name == "nt" else "ffmpeg")
+    if not dest.exists() or dest.stat().st_size != exe.stat().st_size:
+        shutil.copy2(exe, dest)
+        dest.chmod(0o755)
+    os.environ["PATH"] = str(bindir) + os.pathsep + os.environ.get("PATH", "")
+    return shutil.which("ffmpeg") is not None
+
+
+HAS_FFMPEG = _ensure_ffmpeg()
 
 app = FastAPI(title="CuePad")
 
@@ -255,8 +280,7 @@ if __name__ == "__main__":
     print(f"  yt-dlp  : {ok(HAS_YTDLP):3}  (liens YouTube)")
     missing = []
     if not HAS_FFMPEG:
-        missing.append("ffmpeg  → Windows : winget install Gyan.FFmpeg  |  Linux : sudo pacman -S ffmpeg"
-                       "  (puis rouvre le terminal)")
+        missing.append(f"ffmpeg  → {sys.executable} -m pip install imageio-ffmpeg")
     if not HAS_DEMUCS:
         missing.append(f"Demucs  → {sys.executable} -m pip install demucs")
     if not HAS_YTDLP:

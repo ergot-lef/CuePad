@@ -1,123 +1,121 @@
 # CuePad
 
-Un pad de remix piloté au pavé numérique. Tu déposes un morceau, CuePad l'analyse (tempo, temps, mesures, sections) et place tout seul **9 hot cues** sur les moments intéressants : intro, couplets, montées, drops, breaks… Ensuite tu joues au pavé, comme les touches 1 à 9 de YouTube, mais en rythme.
+**English** · [Français](README.fr.md)
+
+A remix pad you play with your numeric keypad. Drop in a track, CuePad analyses it (tempo, beats, bars, sections) and places **9 hot cues** on the interesting moments by itself: intro, verses, build-ups, drops, breaks… Then you play it from the keypad, like YouTube's 1–9 keys, but always on beat.
 
 ![CuePad](docs/capture.png)
 
-## Ce que ça fait
+## Features
 
-- **Analyse automatique** directement dans le navigateur : BPM, grille des temps, premiers temps des mesures, découpage et nom des sections (Intro, Couplet, Refrain, Montée, Drop, Break, Pont, Outro).
-- **9 hot cues** placés sur les débuts de sections et de phrases, colorés selon le type de section.
-- **Sauts quantifiés** : quand tu tapes un pad, le saut attend le prochain temps (ou la prochaine mesure). Ça tombe toujours juste.
-- **Deux couches de pads** : les cues, et avec <kbd>Maj</kbd> enfoncée les boucles et les stems.
-- **Effets aux flèches** (à maintenir) : passe-bas, passe-haut, écho synchronisé au tempo, roll en mode « slip » (le morceau reprend là où il en serait).
-- **Stems** (voix / batterie / basse / instruments) avec [Demucs](https://github.com/facebookresearch/demucs), via le serveur local.
-- **Liens YouTube** avec [yt-dlp](https://github.com/yt-dlp/yt-dlp), via le serveur local.
-- **MIDI** : branche un contrôleur à pads ; un mode « Apprendre » permet d'assigner tes commandes.
+- **Automatic analysis** right in the browser: BPM, beat grid, downbeats, section detection and naming (Intro, Couplet, Refrain, Montée, Drop, Break, Pont, Outro — the interface is in French).
+- **9 hot cues** placed on section and phrase starts, coloured by section type.
+- **Quantised jumps**: when you hit a pad, the jump waits for the next beat (or bar), so it always lands on time.
+- **Two pad layers**: cues, and with <kbd>Shift</kbd> held, loops and stems.
+- **Arrow-key effects** (hold): low-pass, high-pass, tempo-synced echo, roll in "slip" mode (the track resumes where it would have been).
+- **Stems** (vocals / drums / bass / instruments) with [Demucs](https://github.com/facebookresearch/demucs), through the local server.
+- **YouTube links** with [yt-dlp](https://github.com/yt-dlp/yt-dlp), through the local server.
+- **MIDI**: plug in a pad controller; a "learn" mode lets you map your own controls.
 
-## Lancer CuePad
+## Running CuePad
 
-### Navigateur seul (sans stems ni YouTube)
+### Browser only (no stems, no YouTube)
 
-Ouvre `static/index.html` dans Chrome, Chromium, Edge ou Firefox, puis charge un fichier MP3, FLAC, WAV, OGG ou M4A.
+Open `static/index.html` in Chrome, Chromium, Edge or Firefox, then load an MP3, FLAC, WAV, OGG or M4A file.
 
-### Avec le serveur local (stems + YouTube)
+### With the local server (stems + YouTube)
 
-Il faut Python 3.10 ou plus récent, et **ffmpeg**.
+Requires Python 3.10 or newer.
 
-**1. Installer ffmpeg**
-
-- Windows : `winget install Gyan.FFmpeg`, puis ferme et rouvre le terminal.
-- Linux (Arch / CachyOS) : `sudo pacman -S ffmpeg`
-- Debian / Ubuntu : `sudo apt install ffmpeg`
-
-**2. Installer les dépendances Python**
+**1. Install the dependencies**
 
 ```bash
-python -m pip install -r requirements.txt   # serveur + yt-dlp
-python -m pip install demucs                # stems (installe PyTorch, gros téléchargement)
+python -m pip install -r requirements.txt   # server, yt-dlp and ffmpeg
+python -m pip install demucs                # stems (pulls in PyTorch, large download)
 ```
 
-Avec une carte graphique NVIDIA, installe d'abord PyTorch avec CUDA (voir [pytorch.org](https://pytorch.org/get-started/locally/)), sinon Demucs tourne sur le processeur.
+No separate ffmpeg install needed: if it isn't already on your machine, the server uses the one shipped with the `imageio-ffmpeg` package.
 
-**3. Démarrer**
+With an NVIDIA GPU, install PyTorch with CUDA first (see [pytorch.org](https://pytorch.org/get-started/locally/)); otherwise Demucs runs on the CPU.
+
+**2. Start**
 
 ```bash
 python server.py
 ```
 
-Puis ouvre <http://127.0.0.1:8765>. Au démarrage, le serveur indique ce qui est actif et la commande à taper pour ce qui manque.
+Then open <http://127.0.0.1:8765>. On startup the server lists what is enabled and the command to run for anything missing.
 
-La première séparation télécharge le modèle Demucs (environ 80 Mo). Compte 10 à 30 s par morceau sur carte NVIDIA, quelques minutes sur processeur. Les résultats sont gardés dans `cache/` : un morceau déjà traité se recharge tout de suite.
+The first separation downloads the Demucs model (about 80 MB). Expect 10–30 s per track on an NVIDIA GPU, a few minutes on CPU. Results are kept in `cache/`, so a track you've already processed reloads instantly.
 
-Réglages (variables d'environnement) :
+Settings (environment variables):
 
-| Variable        | Rôle                                            | Défaut       |
+| Variable        | Purpose                                         | Default      |
 |-----------------|-------------------------------------------------|--------------|
-| `CUEPAD_DEVICE` | `cuda` ou `cpu` pour Demucs                     | automatique  |
-| `CUEPAD_MODEL`  | modèle Demucs (`htdemucs`, `htdemucs_ft`…)      | `htdemucs`   |
-| `CUEPAD_CACHE`  | dossier du cache                                | `./cache`    |
+| `CUEPAD_DEVICE` | `cuda` or `cpu` for Demucs                      | automatic    |
+| `CUEPAD_MODEL`  | Demucs model (`htdemucs`, `htdemucs_ft`…)       | `htdemucs`   |
+| `CUEPAD_CACHE`  | cache folder                                    | `./cache`    |
 
-## Commandes
+## Controls
 
-Les pads reprennent la disposition du pavé numérique :
+The pads follow the numeric keypad layout:
 
 ```
- 7  8  9        couche 1 : cues 1 à 9 (ordre chronologique)
- 4  5  6        couche 2 (Maj enfoncée) :
- 1  2  3          7 8 9  boucle 1 temps / 2 temps / 1 mesure
-                  4 5 6  voix / batterie / basse   (couper / remettre)
+ 7  8  9        layer 1: cues 1 to 9 (chronological order)
+ 4  5  6        layer 2 (Shift held):
+ 1  2  3          7 8 9  loop 1 beat / 2 beats / 1 bar
+                  4 5 6  vocals / drums / bass   (mute / unmute)
                   1      instruments
-                  2      acapella (voix seule)
-                  3      rythmique (batterie + basse)
+                  2      acapella (vocals only)
+                  3      rhythm (drums + bass)
 ```
 
-| Touche | Action |
+| Key | Action |
 |---|---|
-| <kbd>1</kbd>–<kbd>9</kbd> (pavé ou rangée du haut) | sauter au cue |
-| <kbd>Ctrl</kbd> + <kbd>1</kbd>–<kbd>9</kbd> | placer le cue à la position actuelle (calé sur le temps le plus proche) |
-| <kbd>Maj</kbd> + pavé | couche 2 |
-| <kbd>+</kbd> (pavé) | verrouiller la couche 2 |
-| <kbd>←</kbd> <kbd>→</kbd> | filtre passe-bas / passe-haut (maintenir) |
-| <kbd>↑</kbd> | écho calé sur le tempo (maintenir) |
-| <kbd>↓</kbd> | roll d'un demi-temps, mode slip (maintenir) |
-| <kbd>0</kbd> / <kbd>Entrée</kbd> / <kbd>Espace</kbd> | lecture / pause |
-| <kbd>.</kbd> | retour au début |
-| <kbd>/</kbd> | quantification : temps → mesure → aucune |
-| <kbd>*</kbd> | rétablir les cues automatiques |
-| <kbd>Maj</kbd> + <kbd>0</kbd> | tout rétablir (stems, boucles, effets) |
+| <kbd>1</kbd>–<kbd>9</kbd> (keypad or top row) | jump to cue |
+| <kbd>Ctrl</kbd> + <kbd>1</kbd>–<kbd>9</kbd> | set the cue at the current position (snapped to the nearest beat) |
+| <kbd>Shift</kbd> + keypad | layer 2 |
+| <kbd>+</kbd> (keypad) | lock layer 2 |
+| <kbd>←</kbd> <kbd>→</kbd> | low-pass / high-pass filter (hold) |
+| <kbd>↑</kbd> | tempo-synced echo (hold) |
+| <kbd>↓</kbd> | half-beat roll, slip mode (hold) |
+| <kbd>0</kbd> / <kbd>Enter</kbd> / <kbd>Space</kbd> | play / pause |
+| <kbd>.</kbd> | back to start |
+| <kbd>/</kbd> | quantise: beat → bar → off |
+| <kbd>*</kbd> | restore the automatic cues |
+| <kbd>Shift</kbd> + <kbd>0</kbd> | reset everything (stems, loops, effects) |
 
-**Sous Windows**, <kbd>Maj</kbd> + pavé numérique se comporte mal (Windows relâche Maj en douce). Utilise plutôt <kbd>+</kbd> du pavé pour verrouiller la couche 2, ou <kbd>Maj</kbd> + les chiffres de la rangée du haut.
+**On Windows**, <kbd>Shift</kbd> + numeric keypad misbehaves (Windows silently releases Shift while NumLock is on). Use keypad <kbd>+</kbd> to lock layer 2 instead, or <kbd>Shift</kbd> + the top-row number keys.
 
-Les cues que tu modifies sont enregistrés dans le navigateur, morceau par morceau.
+Cues you edit are saved in the browser, per track.
 
 ### MIDI
 
-Clique sur « Activer le MIDI » (Chrome, Chromium ou Edge). Assignation par défaut : notes 36 à 44 → cues 1 à 9, notes 48 à 56 → couche 2, CC 1 → filtre (à gauche passe-bas, à droite passe-haut). « Apprendre » : clique un pad ou un effet, puis actionne une commande de ton contrôleur.
+Click "Activer le MIDI" (Chrome, Chromium or Edge). Default mapping: notes 36–44 → cues 1–9, notes 48–56 → layer 2, CC 1 → filter (left low-pass, right high-pass). "Apprendre" (learn): click a pad or an effect, then move a control on your controller.
 
-## Comment marche l'analyse
+## How the analysis works
 
-`static/analysis.js`, en JavaScript pur, tourne dans un Web Worker :
+`static/analysis.js`, plain JavaScript, runs in a Web Worker:
 
-1. Passage en mono, réduction à ~22 kHz, transformée de Fourier glissante (fenêtre 2048, pas 256).
-2. Courbe d'attaques (flux spectral logarithmique), tempo par autocorrélation avec une préférence autour de 120 BPM.
-3. Suivi des temps par programmation dynamique (méthode d'Ellis, 2007), puis ajustement d'une grille régulière sur tout le morceau quand le tempo est constant.
-4. Premier temps de la mesure : la position qui maximise les coups de grosse caisse et les changements d'accord.
-5. Description de chaque mesure (chroma, énergie par bande, densité rythmique) → courbe de nouveauté de Foote → frontières de sections alignées sur des phrases de 4 ou 8 mesures.
-6. Regroupement des sections qui se ressemblent (A, B, C…) et nommage selon l'énergie et la position dans le morceau.
+1. Mono downmix, decimation to ~22 kHz, short-time Fourier transform (2048 window, 256 hop).
+2. Onset curve (log spectral flux); tempo by autocorrelation with a prior around 120 BPM.
+3. Beat tracking by dynamic programming (Ellis, 2007), then a regular grid fitted over the whole track when the tempo is constant.
+4. Downbeat: the phase that best matches kick drums and chord changes.
+5. Per-bar descriptors (chroma, band energies, rhythmic density) → Foote novelty curve → section boundaries aligned to 4- or 8-bar phrases.
+6. Similar sections are grouped (A, B, C…) and named from their energy and position in the track.
 
-Tests sur des morceaux synthétiques dont on connaît la structure :
+Tests on synthetic tracks with a known structure:
 
 ```bash
 node tests/test_analysis.js
 ```
 
-## Limites du prototype
+## Prototype limitations
 
-- Suppose une mesure à 4 temps. Les morceaux au tempo flottant (batteur live) utilisent les temps suivis plutôt qu'une grille régulière, c'est moins précis.
-- Le nom des sections reste une estimation : « Refrain » et « Drop » peuvent s'inverser selon le style.
-- Liens YouTube : pour un usage personnel, dans le respect des conditions d'utilisation de YouTube.
+- Assumes 4/4. Tracks with a drifting tempo (live drummer) use the tracked beats rather than a regular grid, which is less precise.
+- Section names are an estimate: "Refrain" and "Drop" can swap depending on the genre.
+- YouTube links: personal use only, within YouTube's terms of service.
 
-## Licence
+## License
 
 MIT
