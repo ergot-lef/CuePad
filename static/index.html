@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CuePad</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="analysis.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="chassis">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-name">CuePad</span>
+        <span class="brand-sub">pad de remix assisté</span>
+      </div>
+      <form class="loader" id="ytForm" autocomplete="off">
+        <label class="file-btn">
+          <input type="file" id="fileInput" accept="audio/*,.mp3,.flac,.wav,.ogg,.m4a">
+          Ouvrir un morceau
+        </label>
+        <input type="url" id="ytUrl" placeholder="ou colle un lien YouTube" aria-label="Lien YouTube">
+        <button type="submit" id="ytBtn">Charger</button>
+      </form>
+    </header>
+
+    <section class="lcd" aria-live="polite">
+      <div class="lcd-cell"><span class="lcd-k">BPM</span><span class="lcd-v" id="lcdBpm">---</span></div>
+      <div class="lcd-cell"><span class="lcd-k">Temps</span><span class="lcd-v" id="lcdTime">0:00.0</span></div>
+      <div class="lcd-cell"><span class="lcd-k">Mesure</span><span class="lcd-v" id="lcdBar">--.-</span></div>
+      <div class="lcd-cell"><span class="lcd-k">Quantif.</span><span class="lcd-v" id="lcdQ">temps</span></div>
+      <div class="lcd-cell"><span class="lcd-k">Couche</span><span class="lcd-v" id="lcdLayer">1 cues</span></div>
+      <div class="lcd-cell lcd-wide"><span class="lcd-k">État</span><span class="lcd-v" id="lcdStatus">Dépose un morceau ici ou ouvre un fichier</span></div>
+    </section>
+
+    <section class="waves" id="dropZone">
+      <canvas id="overview" height="96" aria-label="Vue d'ensemble du morceau, clique pour te déplacer"></canvas>
+      <canvas id="zoom" height="120" aria-label="Zoom autour de la tête de lecture"></canvas>
+      <div class="drop-hint" id="dropHint">Lâche le fichier pour l'analyser</div>
+    </section>
+
+    <main class="deck">
+      <div class="pad-block">
+        <div class="pads" id="pads" data-layer="1"></div>
+        <div class="pad-foot">
+          <button class="small" id="btnPlay" data-action="play">Lecture</button>
+          <button class="small" id="btnQ" data-action="quant">Quantif.</button>
+          <button class="small" id="btnRestore" data-action="restore">Cues auto</button>
+          <button class="small" id="btnLatch" data-action="latch">Couche 2</button>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="panel">
+          <h2>Effets <small>flèches, à maintenir</small></h2>
+          <div class="arrows">
+            <button class="fx" data-action="fx:echo" style="grid-area:up"><b>↑</b>Écho</button>
+            <button class="fx" data-action="fx:lp" style="grid-area:left"><b>←</b>Passe-bas</button>
+            <button class="fx" data-action="fx:roll" style="grid-area:down"><b>↓</b>Roll</button>
+            <button class="fx" data-action="fx:hp" style="grid-area:right"><b>→</b>Passe-haut</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Stems <small id="stemState">serveur non détecté</small></h2>
+          <div class="stems" id="stems">
+            <button class="stem" data-stem="vocals" data-action="l2:4" disabled><i></i>Voix</button>
+            <button class="stem" data-stem="drums" data-action="l2:5" disabled><i></i>Batterie</button>
+            <button class="stem" data-stem="bass" data-action="l2:6" disabled><i></i>Basse</button>
+            <button class="stem" data-stem="other" data-action="l2:1" disabled><i></i>Instruments</button>
+          </div>
+          <div class="meter"><div class="meter-fill" id="stemProgress"></div></div>
+        </div>
+
+        <div class="panel">
+          <h2>MIDI <small id="midiState">inactif</small></h2>
+          <div class="midi-row">
+            <button class="small" id="btnMidi">Activer le MIDI</button>
+            <button class="small" id="btnLearn" disabled>Apprendre</button>
+          </div>
+          <p class="hint" id="midiHint">Notes 36 à 44 : cues 1 à 9. Notes 48 à 56 : couche 2. CC 1 : filtre.</p>
+        </div>
+      </div>
+    </main>
+
+    <footer class="keymap">
+      <div><kbd>1</kbd>–<kbd>9</kbd> sauter au cue</div>
+      <div><kbd>Maj</kbd> + pavé couche 2 (boucles, stems)</div>
+      <div><kbd>Ctrl</kbd> + chiffre placer le cue ici</div>
+      <div><kbd>0</kbd> / <kbd>Entrée</kbd> / <kbd>Espace</kbd> lecture</div>
+      <div><kbd>.</kbd> retour au début</div>
+      <div><kbd>/</kbd> quantification</div>
+      <div><kbd>*</kbd> cues automatiques</div>
+      <div><kbd>+</kbd> verrouiller la couche 2</div>
+      <div><kbd>Maj</kbd>+<kbd>0</kbd> tout rétablir</div>
+    </footer>
+  </div>
+</body>
+</html>
